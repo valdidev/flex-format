@@ -3,15 +3,16 @@ from tkinter import ttk, messagebox, filedialog
 import json
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as minidom
+import yaml
 
 class FormatConverter:
     def __init__(self, root):
         self.root = root
-        self.root.title("Convertidor de Formatos")
+        self.root.title("FlexFormat")
         self.root.geometry("800x600")
 
         # Formatos soportados
-        self.formats = ["JSON", "XML"]
+        self.formats = ["JSON", "XML", "YAML"]
         
         # Estado de validación
         self.is_input_valid = False
@@ -77,6 +78,10 @@ class FormatConverter:
                 ET.fromstring(input_text)
                 self.validation_label.config(text="Estado: XML válido", foreground="green")
                 self.is_input_valid = True
+            elif input_format == "YAML":
+                yaml.safe_load(input_text)
+                self.validation_label.config(text="Estado: YAML válido", foreground="green")
+                self.is_input_valid = True
         except Exception as e:
             self.validation_label.config(text=f"Estado: Formato inválido ({str(e)})", 
                                       foreground="red")
@@ -123,6 +128,8 @@ class FormatConverter:
         elif input_format == "XML":
             root = ET.fromstring(text)
             return self.xml_to_dict(root)
+        elif input_format == "YAML":
+            return yaml.safe_load(text)
 
     def convert_to_output(self, data, output_format):
         if output_format == "JSON":
@@ -132,6 +139,8 @@ class FormatConverter:
             rough_string = ET.tostring(root, encoding="unicode")
             parsed = minidom.parseString(rough_string)
             return parsed.toprettyxml(indent="  ")
+        elif output_format == "YAML":
+            return yaml.dump(data, allow_unicode=True, sort_keys=False, indent=2)
 
     def xml_to_dict(self, element):
         result = {}
@@ -187,9 +196,10 @@ class FormatConverter:
             messagebox.showwarning("Error", "No hay resultado para guardar.")
             return
 
-        file_ext = ".json" if self.output_format.get() == "JSON" else ".xml"
-        file_path = filedialog.asksaveasfilename(defaultextension=file_ext, 
-                                               filetypes=[(f"{self.output_format.get()} files", f"*{file_ext}"), 
+        file_ext = {"JSON": ".json", "XML": ".xml", "YAML": ".yaml"}
+        ext = file_ext.get(self.output_format.get(), ".txt")
+        file_path = filedialog.asksaveasfilename(defaultextension=ext, 
+                                               filetypes=[(f"{self.output_format.get()} files", f"*{ext}"), 
                                                           ("All files", "*.*")])
         if file_path:
             with open(file_path, "w", encoding="utf-8") as f:
