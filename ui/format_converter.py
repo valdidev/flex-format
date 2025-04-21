@@ -9,6 +9,7 @@ class FormatConverter:
     def __init__(self, root):
         self.root = root
         self.root.title("FlexFormat")
+        self.root.iconbitmap("flexformat.ico")
         self.root.geometry("1000x800")
         self.root.minsize(900, 700)
         self.root.configure(bg="#2b2b2b")
