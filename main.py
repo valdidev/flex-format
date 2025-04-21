@@ -37,13 +37,14 @@ class FormatConverter:
         
         # Configurar estilos
         style.configure("TFrame", background=dark_bg)
-        style.configure("TLabel", background=dark_bg, foreground=dark_fg, font=("Segoe UI", 10))
+        style.configure("TLabel", background=dark_bg, foreground=dark_fg, font=("Segoe UI", 12))  # Tamaño para íconos
         style.configure("TCombobox", 
                         fieldbackground=dark_field_bg, 
                         background=dark_select_bg, 
                         foreground=dark_fg,
                         selectbackground=accent_color,
-                        selectforeground=dark_fg)
+                        selectforeground=dark_fg,
+                        font=("Segoe UI", 12))  # Aumentar tamaño de fuente
         style.map("TCombobox", 
                   fieldbackground=[("readonly", dark_field_bg)],
                   selectbackground=[("readonly", dark_select_bg)],
@@ -87,23 +88,24 @@ class FormatConverter:
         format_inner_frame = ttk.Frame(format_frame)
         format_inner_frame.pack(anchor="center")
 
-        # Formato de Entrada
-        ttk.Label(format_inner_frame, text="Formato de Entrada:").pack(side="left", padx=10)
+        # Formato de Entrada (placeholder vacío)
+        ttk.Label(format_inner_frame).pack(side="left", padx=10)
         self.input_format = tk.StringVar(value=self.formats[0])
         input_combo = ttk.Combobox(format_inner_frame, textvariable=self.input_format, 
-                                 values=self.formats, state="readonly", width=10)
+                                 values=self.formats, state="readonly", width=15)
         input_combo.pack(side="left", padx=10)
         input_combo.bind("<<ComboboxSelected>>", self.validate_on_format_change)
 
-        # Formato de Salida
-        ttk.Label(format_inner_frame, text="Formato de Salida:").pack(side="left", padx=10)
+        # Formato de Salida (placeholder vacío)
+        ttk.Label(format_inner_frame).pack(side="left", padx=10)
         self.output_format = tk.StringVar(value=self.formats[1])
         output_combo = ttk.Combobox(format_inner_frame, textvariable=self.output_format, 
-                                  values=self.formats, state="readonly", width=10)
+                                  values=self.formats, state="readonly", width=15)
         output_combo.pack(side="left", padx=10)
 
         # Área de texto para entrada
-        ttk.Label(self.root, text="Código de Entrada:").pack(pady=5, padx=10, anchor="w")
+        self.input_label = ttk.Label(self.root, text=f"→ {self.input_format.get()}")
+        self.input_label.pack(pady=5, padx=10, anchor="w")
         self.input_text = tk.Text(self.root, 
                                  height=10, 
                                  width=80, 
@@ -116,14 +118,18 @@ class FormatConverter:
         self.input_text.pack(pady=5, padx=10, fill="both", expand=True)
         self.input_text.bind("<<Modified>>", self.validate_input)
 
+        # Actualizar etiqueta de entrada cuando cambie el formato
+        self.input_format.trace("w", lambda *args: self.input_label.config(text=f"→ {self.input_format.get()}"))
+
         # Etiqueta para mostrar estado de validación
         self.validation_label = ttk.Label(self.root, 
-                                        text="Esperando entrada", 
+                                        text="⌛ Esperando entrada", 
                                         foreground="#1e90ff")
         self.validation_label.pack(pady=5)
 
-        # Área de texto para salida (vista previa)
-        ttk.Label(self.root, text="Resultado Convertido:").pack(pady=5, padx=10, anchor="w")
+        # Área de texto para salida
+        self.output_label = ttk.Label(self.root, text=f"← {self.output_format.get()}")
+        self.output_label.pack(pady=5, padx=10, anchor="w")
         self.output_text = tk.Text(self.root, 
                                   height=10, 
                                   width=80, 
@@ -134,6 +140,9 @@ class FormatConverter:
                                   relief="flat",
                                   borderwidth=1)
         self.output_text.pack(pady=5, padx=10, fill="both", expand=True)
+
+        # Actualizar etiqueta de salida cuando cambie el formato
+        self.output_format.trace("w", lambda *args: self.output_label.config(text=f"← {self.output_format.get()}"))
 
         # Botones
         button_frame = ttk.Frame(self.root)
@@ -152,6 +161,7 @@ class FormatConverter:
         icon_frame = ttk.Frame(button_frame)
         icon_frame.pack(pady=5)
 
+        # Botón Copiar al Portapapeles (ícono)
         copy_button = ttk.Button(icon_frame, 
                                text="📋", 
                                command=self.copy_to_clipboard, 
@@ -204,25 +214,25 @@ class FormatConverter:
         input_format = self.input_format.get()
 
         if not input_text:
-            self.validation_label.config(text="Entrada vacía", foreground="#1e90ff")
+            self.validation_label.config(text="∅ Entrada vacía", foreground="#1e90ff")
             self.is_input_valid = False
             return
 
         try:
             if input_format == "JSON":
                 json_converter.parse(input_text)
-                self.validation_label.config(text="JSON válido", foreground="#32cd32")
+                self.validation_label.config(text="✓ JSON válido", foreground="#32cd32")
                 self.is_input_valid = True
             elif input_format == "XML":
                 xml_converter.parse(input_text)
-                self.validation_label.config(text="XML válido", foreground="#32cd32")
+                self.validation_label.config(text="✓ XML válido", foreground="#32cd32")
                 self.is_input_valid = True
             elif input_format == "YAML":
                 yaml_converter.parse(input_text)
-                self.validation_label.config(text="YAML válido", foreground="#32cd32")
+                self.validation_label.config(text="✓ YAML válido", foreground="#32cd32")
                 self.is_input_valid = True
         except Exception as e:
-            self.validation_label.config(text=f"Formato inválido ({str(e)})", 
+            self.validation_label.config(text=f"✗ Formato inválido ({str(e)})", 
                                       foreground="#ff4040")
             self.is_input_valid = False
 
