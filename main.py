@@ -6,7 +6,8 @@ class FormatConverter:
     def __init__(self, root):
         self.root = root
         self.root.title("FlexFormat")
-        self.root.geometry("800x600")
+        self.root.geometry("1000x800")  # Tamaño inicial más grande
+        self.root.minsize(900, 700)  # Tamaño mínimo obligatorio
         self.root.configure(bg="#2b2b2b")  # Dark background
         
         # Formatos soportados
@@ -54,6 +55,26 @@ class FormatConverter:
                         font=("Segoe UI", 10),
                         padding=5)
         style.map("TButton",
+                  background=[("active", accent_color)],
+                  foreground=[("active", dark_fg)])
+        
+        # Estilo para el botón Convertir
+        style.configure("Convert.TButton",
+                        background=accent_color,
+                        foreground=dark_fg,
+                        font=("Segoe UI", 12, "bold"),
+                        padding=10)
+        style.map("Convert.TButton",
+                  background=[("active", "#005ea6")],
+                  foreground=[("active", dark_fg)])
+        
+        # Estilo para botones de iconos
+        style.configure("Icon.TButton",
+                        background=dark_select_bg,
+                        foreground=dark_fg,
+                        font=("Segoe UI", 12),
+                        padding=5)
+        style.map("Icon.TButton",
                   background=[("active", accent_color)],
                   foreground=[("active", dark_fg)])
 
@@ -111,10 +132,67 @@ class FormatConverter:
         # Botones
         button_frame = ttk.Frame(self.root)
         button_frame.pack(pady=15, padx=10)
-        
-        ttk.Button(button_frame, text="Convertir", command=self.convert).pack(side="left", padx=5)
-        ttk.Button(button_frame, text="Copiar al Portapapeles", command=self.copy_to_clipboard).pack(side="left", padx=5)
-        ttk.Button(button_frame, text="Guardar como Archivo", command=self.save_to_file).pack(side="left", padx=5)
+
+        # Botón Convertir (centrado y destacado)
+        convert_frame = ttk.Frame(button_frame)
+        convert_frame.pack(pady=10)
+        ttk.Button(convert_frame, 
+                  text="Convertir", 
+                  command=self.convert, 
+                  style="Convert.TButton",
+                  cursor="hand2").pack()
+
+        # Frame para botones de iconos
+        icon_frame = ttk.Frame(button_frame)
+        icon_frame.pack(pady=5)
+
+        # Botón Copiar al Portapapeles (ícono)
+        copy_button = ttk.Button(icon_frame, 
+                               text="📋", 
+                               command=self.copy_to_clipboard, 
+                               style="Icon.TButton",
+                               width=4,
+                               cursor="hand2")
+        copy_button.pack(side="left", padx=5)
+        copy_button.bind("<Enter>", lambda e: self.show_tooltip(copy_button, "Copiar al Portapapeles"))
+        copy_button.bind("<Leave>", lambda e: self.hide_tooltip())
+
+        # Botón Guardar como Archivo (ícono)
+        save_button = ttk.Button(icon_frame, 
+                               text="💾", 
+                               command=self.save_to_file, 
+                               style="Icon.TButton",
+                               width=4,
+                               cursor="hand2")
+        save_button.pack(side="left", padx=5)
+        save_button.bind("<Enter>", lambda e: self.show_tooltip(save_button, "Guardar como Archivo"))
+        save_button.bind("<Leave>", lambda e: self.hide_tooltip())
+
+        # Configurar tooltip
+        self.tooltip = None
+
+    def show_tooltip(self, widget, text):
+        if self.tooltip:
+            self.tooltip.destroy()
+        x, y, _, _ = widget.bbox("insert")
+        x += widget.winfo_rootx() + 25
+        y += widget.winfo_rooty() + 25
+        self.tooltip = tk.Toplevel(widget)
+        self.tooltip.wm_overrideredirect(True)
+        self.tooltip.wm_geometry(f"+{x}+{y}")
+        label = tk.Label(self.tooltip, 
+                        text=text, 
+                        background="#4a4a4a", 
+                        foreground="#ffffff", 
+                        relief="solid", 
+                        borderwidth=1,
+                        font=("Segoe UI", 8))
+        label.pack()
+
+    def hide_tooltip(self):
+        if self.tooltip:
+            self.tooltip.destroy()
+            self.tooltip = None
 
     def validate_input(self, event=None):
         input_text = self.input_text.get("1.0", tk.END).strip()
