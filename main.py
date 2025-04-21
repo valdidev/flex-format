@@ -7,6 +7,7 @@ class FormatConverter:
         self.root = root
         self.root.title("FlexFormat")
         self.root.geometry("800x600")
+        self.root.configure(bg="#2b2b2b")  # Dark background
         
         # Formatos soportados
         self.formats = ["JSON", "XML", "YAML"]
@@ -14,76 +15,132 @@ class FormatConverter:
         # Estado de validación
         self.is_input_valid = False
         
+        # Configurar estilo oscuro
+        self.setup_dark_theme()
+        
         # Interfaz gráfica
         self.create_widgets()
 
+    def setup_dark_theme(self):
+        style = ttk.Style()
+        
+        # Configurar tema base
+        style.theme_use("clam")
+        
+        # Colores del tema oscuro
+        dark_bg = "#2b2b2b"
+        dark_fg = "#ffffff"
+        dark_field_bg = "#3c3f41"
+        dark_select_bg = "#4a4a4a"
+        accent_color = "#0078d7"  # Azul profesional
+        
+        # Configurar estilos
+        style.configure("TFrame", background=dark_bg)
+        style.configure("TLabel", background=dark_bg, foreground=dark_fg, font=("Segoe UI", 10))
+        style.configure("TCombobox", 
+                        fieldbackground=dark_field_bg, 
+                        background=dark_select_bg, 
+                        foreground=dark_fg,
+                        selectbackground=accent_color,
+                        selectforeground=dark_fg)
+        style.map("TCombobox", 
+                  fieldbackground=[("readonly", dark_field_bg)],
+                  selectbackground=[("readonly", dark_select_bg)],
+                  selectforeground=[("readonly", dark_fg)])
+        
+        style.configure("TButton", 
+                        background=dark_select_bg, 
+                        foreground=dark_fg, 
+                        font=("Segoe UI", 10),
+                        padding=5)
+        style.map("TButton",
+                  background=[("active", accent_color)],
+                  foreground=[("active", dark_fg)])
+
     def create_widgets(self):
         # Frame para selección de formatos
-        format_frame = tk.Frame(self.root)
-        format_frame.pack(pady=10, fill="x")
+        format_frame = ttk.Frame(self.root)
+        format_frame.pack(pady=15, padx=10, fill="x")
 
-        tk.Label(format_frame, text="Formato de Entrada:").pack(side="left", padx=5)
+        ttk.Label(format_frame, text="Formato de Entrada:").pack(side="left", padx=10)
         self.input_format = tk.StringVar(value=self.formats[0])
         input_combo = ttk.Combobox(format_frame, textvariable=self.input_format, 
                                  values=self.formats, state="readonly", width=10)
-        input_combo.pack(side="left", padx=5)
+        input_combo.pack(side="left", padx=10)
         input_combo.bind("<<ComboboxSelected>>", self.validate_on_format_change)
 
-        tk.Label(format_frame, text="Formato de Salida:").pack(side="left", padx=5)
+        ttk.Label(format_frame, text="Formato de Salida:").pack(side="left", padx=10)
         self.output_format = tk.StringVar(value=self.formats[1])
         output_combo = ttk.Combobox(format_frame, textvariable=self.output_format, 
                                   values=self.formats, state="readonly", width=10)
-        output_combo.pack(side="left", padx=5)
+        output_combo.pack(side="left", padx=10)
 
         # Área de texto para entrada
-        tk.Label(self.root, text="Código de Entrada:").pack(pady=5)
-        self.input_text = tk.Text(self.root, height=10, width=80)
-        self.input_text.pack(pady=5)
+        ttk.Label(self.root, text="Código de Entrada:").pack(pady=5, padx=10, anchor="w")
+        self.input_text = tk.Text(self.root, 
+                                 height=10, 
+                                 width=80, 
+                                 bg="#3c3f41", 
+                                 fg="#ffffff", 
+                                 insertbackground="#ffffff",
+                                 font=("Consolas", 10),
+                                 relief="flat",
+                                 borderwidth=1)
+        self.input_text.pack(pady=5, padx=10, fill="both", expand=True)
         self.input_text.bind("<<Modified>>", self.validate_input)
 
         # Etiqueta para mostrar estado de validación
-        self.validation_label = tk.Label(self.root, text="Estado: Esperando entrada", 
-                                       foreground="blue")
+        self.validation_label = ttk.Label(self.root, 
+                                        text="Estado: Esperando entrada", 
+                                        foreground="#1e90ff")
         self.validation_label.pack(pady=5)
 
         # Área de texto para salida (vista previa)
-        tk.Label(self.root, text="Resultado Convertido:").pack(pady=5)
-        self.output_text = tk.Text(self.root, height=10, width=80)
-        self.output_text.pack(pady=5)
+        ttk.Label(self.root, text="Resultado Convertido:").pack(pady=5, padx=10, anchor="w")
+        self.output_text = tk.Text(self.root, 
+                                  height=10, 
+                                  width=80, 
+                                  bg="#3c3f41", 
+                                  fg="#ffffff", 
+                                  insertbackground="#ffffff",
+                                  font=("Consolas", 10),
+                                  relief="flat",
+                                  borderwidth=1)
+        self.output_text.pack(pady=5, padx=10, fill="both", expand=True)
 
         # Botones
-        button_frame = tk.Frame(self.root)
-        button_frame.pack(pady=10)
+        button_frame = ttk.Frame(self.root)
+        button_frame.pack(pady=15, padx=10)
         
-        tk.Button(button_frame, text="Convertir", command=self.convert).pack(side="left", padx=5)
-        tk.Button(button_frame, text="Copiar al Portapapeles", command=self.copy_to_clipboard).pack(side="left", padx=5)
-        tk.Button(button_frame, text="Guardar como Archivo", command=self.save_to_file).pack(side="left", padx=5)
+        ttk.Button(button_frame, text="Convertir", command=self.convert).pack(side="left", padx=5)
+        ttk.Button(button_frame, text="Copiar al Portapapeles", command=self.copy_to_clipboard).pack(side="left", padx=5)
+        ttk.Button(button_frame, text="Guardar como Archivo", command=self.save_to_file).pack(side="left", padx=5)
 
     def validate_input(self, event=None):
         input_text = self.input_text.get("1.0", tk.END).strip()
         input_format = self.input_format.get()
 
         if not input_text:
-            self.validation_label.config(text="Estado: Entrada vacía", foreground="blue")
+            self.validation_label.config(text="Estado: Entrada vacía", foreground="#1e90ff")
             self.is_input_valid = False
             return
 
         try:
             if input_format == "JSON":
                 json_converter.parse(input_text)
-                self.validation_label.config(text="Estado: JSON válido", foreground="green")
+                self.validation_label.config(text="Estado: JSON válido", foreground="#32cd32")
                 self.is_input_valid = True
             elif input_format == "XML":
                 xml_converter.parse(input_text)
-                self.validation_label.config(text="Estado: XML válido", foreground="green")
+                self.validation_label.config(text="Estado: XML válido", foreground="#32cd32")
                 self.is_input_valid = True
             elif input_format == "YAML":
                 yaml_converter.parse(input_text)
-                self.validation_label.config(text="Estado: YAML válido", foreground="green")
+                self.validation_label.config(text="Estado: YAML válido", foreground="#32cd32")
                 self.is_input_valid = True
         except Exception as e:
             self.validation_label.config(text=f"Estado: Formato inválido ({str(e)})", 
-                                      foreground="red")
+                                      foreground="#ff4040")
             self.is_input_valid = False
 
         # Resetear la bandera de modificación
