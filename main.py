@@ -83,16 +83,22 @@ class FormatConverter:
         format_frame = ttk.Frame(self.root)
         format_frame.pack(pady=15, padx=10, fill="x")
 
-        ttk.Label(format_frame, text="Formato de Entrada:").pack(side="left", padx=10)
+        # Subframe centrado para los widgets de formato
+        format_inner_frame = ttk.Frame(format_frame)
+        format_inner_frame.pack(anchor="center")
+
+        # Formato de Entrada
+        ttk.Label(format_inner_frame, text="Formato de Entrada:").pack(side="left", padx=10)
         self.input_format = tk.StringVar(value=self.formats[0])
-        input_combo = ttk.Combobox(format_frame, textvariable=self.input_format, 
+        input_combo = ttk.Combobox(format_inner_frame, textvariable=self.input_format, 
                                  values=self.formats, state="readonly", width=10)
         input_combo.pack(side="left", padx=10)
         input_combo.bind("<<ComboboxSelected>>", self.validate_on_format_change)
 
-        ttk.Label(format_frame, text="Formato de Salida:").pack(side="left", padx=10)
+        # Formato de Salida
+        ttk.Label(format_inner_frame, text="Formato de Salida:").pack(side="left", padx=10)
         self.output_format = tk.StringVar(value=self.formats[1])
-        output_combo = ttk.Combobox(format_frame, textvariable=self.output_format, 
+        output_combo = ttk.Combobox(format_inner_frame, textvariable=self.output_format, 
                                   values=self.formats, state="readonly", width=10)
         output_combo.pack(side="left", padx=10)
 
@@ -112,7 +118,7 @@ class FormatConverter:
 
         # Etiqueta para mostrar estado de validación
         self.validation_label = ttk.Label(self.root, 
-                                        text="Estado: Esperando entrada", 
+                                        text="Esperando entrada", 
                                         foreground="#1e90ff")
         self.validation_label.pack(pady=5)
 
@@ -146,7 +152,6 @@ class FormatConverter:
         icon_frame = ttk.Frame(button_frame)
         icon_frame.pack(pady=5)
 
-        # Botón Copiar al Portapapeles (ícono)
         copy_button = ttk.Button(icon_frame, 
                                text="📋", 
                                command=self.copy_to_clipboard, 
@@ -199,25 +204,25 @@ class FormatConverter:
         input_format = self.input_format.get()
 
         if not input_text:
-            self.validation_label.config(text="Estado: Entrada vacía", foreground="#1e90ff")
+            self.validation_label.config(text="Entrada vacía", foreground="#1e90ff")
             self.is_input_valid = False
             return
 
         try:
             if input_format == "JSON":
                 json_converter.parse(input_text)
-                self.validation_label.config(text="Estado: JSON válido", foreground="#32cd32")
+                self.validation_label.config(text="JSON válido", foreground="#32cd32")
                 self.is_input_valid = True
             elif input_format == "XML":
                 xml_converter.parse(input_text)
-                self.validation_label.config(text="Estado: XML válido", foreground="#32cd32")
+                self.validation_label.config(text="XML válido", foreground="#32cd32")
                 self.is_input_valid = True
             elif input_format == "YAML":
                 yaml_converter.parse(input_text)
-                self.validation_label.config(text="Estado: YAML válido", foreground="#32cd32")
+                self.validation_label.config(text="YAML válido", foreground="#32cd32")
                 self.is_input_valid = True
         except Exception as e:
-            self.validation_label.config(text=f"Estado: Formato inválido ({str(e)})", 
+            self.validation_label.config(text=f"Formato inválido ({str(e)})", 
                                       foreground="#ff4040")
             self.is_input_valid = False
 
